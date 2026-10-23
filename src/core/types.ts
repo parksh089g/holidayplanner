@@ -1,6 +1,9 @@
 /** 'YYYY-MM-DD' 형식의 날짜 문자열 (로컬 날짜). */
 export type ISODate = string;
 
+/** 'HH:mm' 형식의 시각 문자열. */
+export type HHmm = string;
+
 /** 휴가 일수는 0.25일 단위 정수로 다뤄요. 1일 = 4, 반차 = 2, 반반차 = 1. */
 export const QUARTERS_PER_DAY = 4;
 
@@ -60,4 +63,15 @@ export interface HolidayFile {
   source: string;
   verified: boolean;
   holidays: Holiday[];
+}
+
+// ── 근무 기록 (SPEC §5.6) ──
+
+export interface WorkLog {
+  date: ISODate;
+  clockIn: HHmm;
+  /** 퇴근 전에는 '' (진행 중) */
+  clockOut: HHmm | '';
+  breakMinutes?: number;
+  note?: string;
 }

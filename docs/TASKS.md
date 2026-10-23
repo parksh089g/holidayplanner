@@ -22,7 +22,7 @@ UI 없이 테스트로만 완성합니다. SPEC §10 테스트 케이스를 먼�
 - [x] **T1-3 `balance.ts`**: `computeBalance` FIFO 배분 (SPEC §5.3). 테스트 B1–B6.
 - [x] **T1-4 `holidays.ts`**: `buildOffDaySet`, `isOffDay`, `deriveSubstitutes` (SPEC §5.4). 테스트 H1–H3.
 - [x] **T1-5 `bridge.ts`**: `suggestBridges` (SPEC §5.5). 테스트 R1–R4. 2년치 계산 50ms 이내.
-- [ ] **T1-6 `worktime.ts`**: `computeDay`, `computeWeek` (SPEC §5.6). 테스트 W1–W8.
+- [x] **T1-6 `worktime.ts`**: `computeDay`, `computeWeek` (SPEC §5.6). 테스트 W1–W8.
   - M1 완료 조건: `src/core` 커버리지 90% 이상.
 
 ## M2. 저장소와 화면 (2주)
