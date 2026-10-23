@@ -17,3 +17,30 @@ export interface AutoGrant {
   /** monthly는 0, annual은 근속연수 n */
   serviceYear: number;
 }
+
+export interface ManualGrant {
+  id: string;
+  grantDate: ISODate;
+  expireDate: ISODate;
+  /** 음수면 차감 */
+  quarters: number;
+  memo: string;
+}
+
+export type Grant = AutoGrant | ManualGrant;
+
+// ── 휴가 기록 (SPEC §6) ──
+
+export type LeaveType = 'annual' | 'special' | 'sick' | 'other';
+
+export interface LeaveEntry {
+  id: string;
+  date: ISODate;
+  /** 반반차 1, 반차 2, 연차 4. 일괄 차감 항목은 임의 값 허용 */
+  quarters: number;
+  part?: 'am' | 'pm';
+  type: LeaveType;
+  memo?: string;
+  /** 온보딩 일괄 차감 */
+  isBulk?: boolean;
+}
