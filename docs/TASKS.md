@@ -18,7 +18,7 @@
 UI 없이 테스트로만 완성합니다. SPEC §10 테스트 케이스를 먼저 작성하고 구현합니다.
 
 - [x] **T1-1 `date.ts`**: `parseISO`, `toISO`, `addDaysISO`, `addMonthsISO`, `addYearsISO`, `diffDays`, `weekdayOf`, `startOfWeekMon`, `eachDay(from, to)`. 로컬 자정 기준.
-- [ ] **T1-2 `accrual.ts`**: `computeAutoGrants` (SPEC §5.1). 테스트 A1–A8.
+- [x] **T1-2 `accrual.ts`**: `computeAutoGrants` (SPEC §5.1). 테스트 A1–A8.
 - [ ] **T1-3 `balance.ts`**: `computeBalance` FIFO 배분 (SPEC §5.3). 테스트 B1–B6.
 - [ ] **T1-4 `holidays.ts`**: `buildOffDaySet`, `isOffDay`, `deriveSubstitutes` (SPEC §5.4). 테스트 H1–H3.
 - [ ] **T1-5 `bridge.ts`**: `suggestBridges` (SPEC §5.5). 테스트 R1–R4. 2년치 계산 50ms 이내.
