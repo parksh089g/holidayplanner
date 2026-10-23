@@ -44,3 +44,20 @@ export interface LeaveEntry {
   /** 온보딩 일괄 차감 */
   isBulk?: boolean;
 }
+
+// ── 공휴일 (SPEC §5.4, §7) ──
+
+export type HolidayKind = 'legal' | 'substitute' | 'election' | 'temporary' | 'company';
+
+export interface Holiday {
+  date: ISODate;
+  name: string;
+  kind: HolidayKind;
+}
+
+export interface HolidayFile {
+  year: number;
+  source: string;
+  verified: boolean;
+  holidays: Holiday[];
+}
