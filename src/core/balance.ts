@@ -1,3 +1,4 @@
+import { compareISO } from './date';
 import type { AutoGrant, Grant, ISODate, LeaveEntry } from './types';
 
 export interface GrantBalance {
@@ -36,8 +37,6 @@ export interface BalanceSummary {
   nextGrant?: { date: ISODate; quarters: number };
 }
 
-const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
-
 const isValidOn = (grant: Grant, date: ISODate) =>
   grant.grantDate <= date && date <= grant.expireDate;
 
@@ -62,20 +61,22 @@ export function computeBalance(
   asOf: ISODate,
 ): BalanceSummary {
   const balances: GrantBalance[] = [...grants]
-    .sort((a, b) => compare(a.grantDate, b.grantDate) || compare(a.id, b.id))
+    .sort((a, b) => compareISO(a.grantDate, b.grantDate) || a.id.localeCompare(b.id))
     .map((grant) => ({ grant, usedQ: 0, plannedQ: 0, remainingQ: grant.quarters }));
   const byExpiry = [...balances].sort(
     (a, b) =>
-      compare(a.grant.expireDate, b.grant.expireDate) ||
-      compare(a.grant.grantDate, b.grant.grantDate) ||
-      compare(a.grant.id, b.grant.id),
+      compareISO(a.grant.expireDate, b.grant.expireDate) ||
+      compareISO(a.grant.grantDate, b.grant.grantDate) ||
+      a.grant.id.localeCompare(b.grant.id),
   );
 
   const annualEntries = entries
     .filter((e) => e.type === 'annual')
     .sort(
       (a, b) =>
-        compare(a.date, b.date) || Number(!!b.isBulk) - Number(!!a.isBulk) || compare(a.id, b.id),
+        compareISO(a.date, b.date) ||
+        Number(!!b.isBulk) - Number(!!a.isBulk) ||
+        a.id.localeCompare(b.id),
     );
 
   const overdrawn: OverdrawnEntry[] = [];

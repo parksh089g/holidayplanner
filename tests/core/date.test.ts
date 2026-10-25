@@ -3,6 +3,7 @@ import {
   addDaysISO,
   addMonthsISO,
   addYearsISO,
+  compareISO,
   diffDays,
   eachDay,
   isWeekend,
@@ -58,6 +59,17 @@ describe('addDaysISO / addMonthsISO / addYearsISO', () => {
   it('2월 29일 입사자는 평년에 2월 28일로 보정해요', () => {
     expect(addYearsISO('2024-02-29', 1)).toBe('2025-02-28');
     expect(addYearsISO('2024-02-29', 4)).toBe('2028-02-29');
+  });
+});
+
+describe('compareISO', () => {
+  it('날짜 오름차순으로 정렬해요', () => {
+    expect(['2027-01-01', '2026-12-31', '2026-03-02', '2026-03-02'].sort(compareISO)).toEqual([
+      '2026-03-02',
+      '2026-03-02',
+      '2026-12-31',
+      '2027-01-01',
+    ]);
   });
 });
 

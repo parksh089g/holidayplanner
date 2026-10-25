@@ -1,4 +1,4 @@
-import { eachDay } from './date';
+import { compareISO, eachDay } from './date';
 import { isOffDay } from './holidays';
 import type { Holiday, ISODate } from './types';
 
@@ -111,9 +111,10 @@ export function suggestBridges(
       leaveDates: days.slice(start, end + 1).filter((_, k) => !isOff[start + k]),
       leaveDays,
       efficiency,
+      // 꺼 둔 회사 휴무일처럼 실제로 쉬지 않는 날은 빼요.
       holidays: holidays
-        .filter((h) => startDate <= h.date && h.date <= endDate)
-        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)),
+        .filter((h) => startDate <= h.date && h.date <= endDate && off.has(h.date))
+        .sort((a, b) => compareISO(a.date, b.date)),
     };
   });
 }
