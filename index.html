@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="남은 연차 계산, 샌드위치 연휴 추천, 초과근무 정산" />
     <title>연차 플래너</title>
+    <script>
+      // 첫 화면이 밝게 번쩍이지 않도록 렌더링 전에 시스템 다크 모드를 반영해요.
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
