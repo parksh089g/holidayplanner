@@ -26,6 +26,39 @@ export async function saveProfile(profile: Profile): Promise<void> {
   await db.profile.put(profile);
 }
 
+export const ONBOARDING_BULK_MEMO = '앱 사용 전 사용분';
+
+/**
+ * 온보딩 완료 (SPEC §8.1, §5.2). 프로필과 "현재 연차 기간에 이미 쓴 연차"를 한 번에 저장해요.
+ * 이미 쓴 연차는 오늘 날짜의 일괄 차감 항목(isBulk) 하나로 남겨요. 0이면 만들지 않아요.
+ */
+export async function completeOnboarding(
+  profile: Profile,
+  usedQ: number,
+  today: ISODate,
+): Promise<void> {
+  validateProfile(profile);
+  if (!Number.isInteger(usedQ) || usedQ < 0) {
+    throw new ValidationError('이미 쓴 연차는 0.25일 단위로 0일 이상이어야 해요.');
+  }
+  const bulk: LeaveEntry | undefined =
+    usedQ > 0
+      ? {
+          id: newId(),
+          date: today,
+          quarters: usedQ,
+          type: 'annual',
+          memo: ONBOARDING_BULK_MEMO,
+          isBulk: true,
+        }
+      : undefined;
+  if (bulk) validateLeaveEntry(bulk);
+  await db.transaction('rw', db.profile, db.leaveEntries, async () => {
+    await db.profile.put(profile);
+    if (bulk) await db.leaveEntries.put(bulk);
+  });
+}
+
 export async function updateProfile(changes: Partial<Omit<Profile, 'id'>>): Promise<void> {
   await db.transaction('rw', db.profile, async () => {
     const current = await db.profile.get('me');

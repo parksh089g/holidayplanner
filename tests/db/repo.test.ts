@@ -181,3 +181,38 @@ describe('newId', () => {
     expect([...ids][0]).toMatch(/^[0-9a-f-]{36}$/);
   });
 });
+
+describe('completeOnboarding', () => {
+  it('프로필과 일괄 차감 항목을 함께 저장해요', async () => {
+    await repo.completeOnboarding(sampleProfile(), 29, '2026-10-23');
+    expect(await repo.getProfile()).toEqual(sampleProfile());
+    const [bulk, ...rest] = await repo.listLeaveEntries();
+    expect(rest).toEqual([]);
+    expect(bulk).toMatchObject({
+      date: '2026-10-23',
+      quarters: 29,
+      type: 'annual',
+      memo: repo.ONBOARDING_BULK_MEMO,
+      isBulk: true,
+    });
+  });
+
+  it('이미 쓴 연차가 0이면 항목을 만들지 않아요', async () => {
+    await repo.completeOnboarding(sampleProfile(), 0, '2026-10-23');
+    expect(await repo.listLeaveEntries()).toEqual([]);
+  });
+
+  it.each([-4, 1.5])('이미 쓴 연차가 %s면 아무것도 저장하지 않아요', async (usedQ) => {
+    await expect(repo.completeOnboarding(sampleProfile(), usedQ, '2026-10-23')).rejects.toThrow(
+      ValidationError,
+    );
+    expect(await repo.getProfile()).toBeUndefined();
+  });
+
+  it('프로필이 틀리면 아무것도 저장하지 않아요', async () => {
+    await expect(
+      repo.completeOnboarding(sampleProfile({ workEnd: '08:00' }), 4, '2026-10-23'),
+    ).rejects.toThrow(ValidationError);
+    expect(await repo.listLeaveEntries()).toEqual([]);
+  });
+});

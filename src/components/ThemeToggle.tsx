@@ -1,6 +1,6 @@
 import type { ThemeMode } from '../core/types';
 import { useTheme } from '../hooks/useTheme';
-import { THEME_LABEL } from '../store/ui';
+import { THEME_LABEL } from '../lib/theme';
 import { MonitorIcon, MoonIcon, SunIcon } from './icons';
 
 const THEME_ICON: Record<ThemeMode, typeof SunIcon> = {

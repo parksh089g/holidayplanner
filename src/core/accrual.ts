@@ -43,3 +43,36 @@ export function computeAutoGrants(hireDate: ISODate, until: ISODate): AutoGrant[
     });
   }
 }
+
+export interface LeavePeriod {
+  start: ISODate;
+  end: ISODate;
+  /** 지금까지 발생한 양. 입사 1년 미만이면 월차 누적이에요. */
+  grantedQ: number;
+  /** 입사 1년 미만(월차 기간) */
+  firstYear: boolean;
+}
+
+/**
+ * asOf가 속한 연차 기간과 발생량 (SPEC §8.1 온보딩 안내).
+ * 사용자가 인사시스템 숫자와 비교할 수 있게 보여줘요. 입사 전이면 undefined예요.
+ */
+export function currentLeavePeriod(hireDate: ISODate, asOf: ISODate): LeavePeriod | undefined {
+  if (asOf < hireDate) return undefined;
+  const grants = computeAutoGrants(hireDate, asOf);
+  const latest = grants[grants.length - 1];
+  if (!latest || latest.kind === 'monthly') {
+    return {
+      start: hireDate,
+      end: addDaysISO(addYearsISO(hireDate, 1), -1),
+      grantedQ: grants.reduce((total, g) => total + g.quarters, 0),
+      firstYear: true,
+    };
+  }
+  return {
+    start: latest.grantDate,
+    end: latest.expireDate,
+    grantedQ: latest.quarters,
+    firstYear: false,
+  };
+}

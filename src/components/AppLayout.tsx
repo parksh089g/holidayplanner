@@ -1,6 +1,4 @@
 import { Link, NavLink, Outlet } from 'react-router';
-import { useApplyTheme } from '../hooks/useApplyTheme';
-import { useTheme } from '../hooks/useTheme';
 import { SettingsIcon } from './icons';
 import { MAIN_TABS, SETTINGS_TAB, type NavItem } from './navItems';
 import { ThemeToggle } from './ThemeToggle';
@@ -57,9 +55,6 @@ function SidebarLink({ item }: { item: NavItem }) {
 }
 
 export function AppLayout() {
-  const { theme } = useTheme();
-  useApplyTheme(theme);
-
   return (
     <div className="min-h-dvh md:flex">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-dvh md:w-56 md:shrink-0 md:flex-col md:border-r md:border-gray-200 md:px-3 md:py-4 md:dark:border-gray-800">

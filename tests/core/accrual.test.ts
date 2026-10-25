@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { annualDaysFor, computeAutoGrants } from '../../src/core/accrual';
+import { annualDaysFor, computeAutoGrants, currentLeavePeriod } from '../../src/core/accrual';
 import type { AutoGrant, ISODate } from '../../src/core/types';
 
 const activeAt = (grants: AutoGrant[], asOf: ISODate) =>
@@ -137,5 +137,51 @@ describe('annualDaysFor', () => {
     [23, 25],
   ])('근속 %i년차는 %i일 (SPEC §5.1 표)', (serviceYear, days) => {
     expect(annualDaysFor(serviceYear)).toBe(days);
+  });
+});
+
+describe('currentLeavePeriod', () => {
+  it('A5·SPEC §8.1: 2021-03-02 입사자는 2026-10-23에 2026.03.02–2027.03.01, 발생 17일', () => {
+    expect(currentLeavePeriod('2021-03-02', '2026-10-23')).toEqual({
+      start: '2026-03-02',
+      end: '2027-03-01',
+      grantedQ: 68,
+      firstYear: false,
+    });
+  });
+
+  it('1년 미만이면 입사일부터 1년간이고 지금까지 생긴 월차를 합해요', () => {
+    expect(currentLeavePeriod('2026-06-01', '2026-10-23')).toEqual({
+      start: '2026-06-01',
+      end: '2027-05-31',
+      grantedQ: 16,
+      firstYear: true,
+    });
+  });
+
+  it('입사 당일은 발생 0일이에요', () => {
+    expect(currentLeavePeriod('2026-10-23', '2026-10-23')).toMatchObject({
+      grantedQ: 0,
+      firstYear: true,
+    });
+  });
+
+  it('A3·A4: 1년 되기 전날은 월차 11일, 1년 되는 날부터 15일 연차 기간이에요', () => {
+    expect(currentLeavePeriod('2025-03-02', '2026-03-01')).toEqual({
+      start: '2025-03-02',
+      end: '2026-03-01',
+      grantedQ: 44,
+      firstYear: true,
+    });
+    expect(currentLeavePeriod('2025-03-02', '2026-03-02')).toEqual({
+      start: '2026-03-02',
+      end: '2027-03-01',
+      grantedQ: 60,
+      firstYear: false,
+    });
+  });
+
+  it('입사 전이면 undefined예요', () => {
+    expect(currentLeavePeriod('2026-11-01', '2026-10-23')).toBeUndefined();
   });
 });
