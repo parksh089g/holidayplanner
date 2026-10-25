@@ -119,6 +119,15 @@ export async function putWorkLog(log: WorkLog): Promise<void> {
 
 export const deleteWorkLog = (date: ISODate) => db.workLogs.delete(date);
 
+/** 여러 근무 기록을 한 번에 저장·삭제해요 ("정시로 채우기"와 되돌리기). 하나라도 틀리면 아무것도 바꾸지 않아요. */
+export async function replaceWorkLogs(put: WorkLog[], remove: ISODate[]): Promise<void> {
+  put.forEach(validateWorkLog);
+  await db.transaction('rw', db.workLogs, async () => {
+    await db.workLogs.bulkDelete(remove);
+    await db.workLogs.bulkPut(put);
+  });
+}
+
 // ── 회사 휴무일 ──
 
 export const listCustomHolidays = () => db.holidays.orderBy('date').toArray();

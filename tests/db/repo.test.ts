@@ -216,3 +216,23 @@ describe('completeOnboarding', () => {
     expect(await repo.listLeaveEntries()).toEqual([]);
   });
 });
+
+describe('replaceWorkLogs', () => {
+  it('여러 기록을 한 번에 저장하고 지워요 (정시로 채우기·되돌리기)', async () => {
+    await repo.putWorkLog(workLog('2026-10-21', { clockOut: '' }));
+    await repo.replaceWorkLogs([workLog('2026-10-21'), workLog('2026-10-23')], []);
+    expect((await repo.listWorkLogs()).map((l) => `${l.date} ${l.clockOut}`)).toEqual([
+      '2026-10-21 18:00',
+      '2026-10-23 18:00',
+    ]);
+    await repo.replaceWorkLogs([workLog('2026-10-21', { clockOut: '' })], ['2026-10-23']);
+    expect(await repo.listWorkLogs()).toEqual([workLog('2026-10-21', { clockOut: '' })]);
+  });
+
+  it('하나라도 틀리면 아무것도 바꾸지 않아요', async () => {
+    await expect(
+      repo.replaceWorkLogs([workLog('2026-10-21'), workLog('2026-10-22', { clockIn: '9:00' })], []),
+    ).rejects.toThrow(ValidationError);
+    expect(await repo.listWorkLogs()).toEqual([]);
+  });
+});
