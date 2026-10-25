@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from './components/AppLayout';
 import Calendar from './pages/Calendar';
 import Home from './pages/Home';
@@ -24,7 +24,7 @@ export function AppRoutes() {
 /** GitHub Pages는 SPA 경로를 새로고침하면 404가 나서 해시 라우팅을 써요 (SPEC §2). */
 export default function App() {
   return (
-    <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <HashRouter>
       <AppRoutes />
     </HashRouter>
   );
