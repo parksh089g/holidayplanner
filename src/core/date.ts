@@ -44,6 +44,11 @@ export function addYearsISO(iso: ISODate, years: number): ISODate {
   return toISO(addYears(parseISO(iso), years));
 }
 
+/** sort 비교 함수. 'YYYY-MM-DD'는 문자열 순서가 곧 날짜 순서예요. */
+export function compareISO(a: ISODate, b: ISODate): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 /** to - from (일). from이 더 늦으면 음수예요. */
 export function diffDays(from: ISODate, to: ISODate): number {
   return differenceInCalendarDays(parseISO(to), parseISO(from));
