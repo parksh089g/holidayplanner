@@ -1,4 +1,4 @@
-import { addDaysISO, isWeekend, weekdayOf } from './date';
+import { addDaysISO, compareISO, isWeekend, weekdayOf } from './date';
 import type { Holiday, ISODate } from './types';
 
 /**
@@ -85,7 +85,7 @@ export function deriveSubstitutes(base: Holiday[]): Holiday[] {
   // 삼일절·어린이날 등: 토·일 또는 다른 공휴일과 겹치면
   const singles = holidays
     .filter((h) => SUBSTITUTABLE.has(h.name))
-    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    .sort((a, b) => compareISO(a.date, b.date));
   for (const h of singles) {
     if (overlaps(h.date)) {
       if (handledOverlaps.has(h.date)) continue;
@@ -98,7 +98,7 @@ export function deriveSubstitutes(base: Holiday[]): Holiday[] {
 
   const taken = new Set(countByDate.keys());
   return triggers
-    .sort((a, b) => (a.after < b.after ? -1 : a.after > b.after ? 1 : 0))
+    .sort((a, b) => compareISO(a.after, b.after))
     .map(({ after, name }) => {
       let date = addDaysISO(after, 1);
       while (taken.has(date) || isWeekend(date)) date = addDaysISO(date, 1);
