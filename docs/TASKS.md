@@ -7,7 +7,7 @@
 
 - [x] **T0-1 스캐폴딩**: `npm create vite@latest . -- --template react-ts`, Tailwind·ESLint·Prettier·Vitest 설정, `npm run dev/build/test/lint` 동작.
   - 완료 조건: 빈 화면에 "연차 플래너"가 뜨고 `npm test`가 통과.
-- [ ] **T0-2 배포 파이프라인**: `vite.config.ts`에 `base: '/holidayplanner/'`, `.github/workflows/deploy.yml`(test → build → deploy-pages). 저장소 Settings → Pages → Source = GitHub Actions.
+- [x] **T0-2 배포 파이프라인**: `vite.config.ts`에 `base: '/holidayplanner/'`, `.github/workflows/deploy.yml`(test → build → deploy-pages). 저장소 Settings → Pages → Source = GitHub Actions.
   - 완료 조건: `https://<github-id>.github.io/holidayplanner/`에서 화면이 열림.
 - [ ] **T0-3 공휴일 데이터 검증**: `public/holidays/2026.json`, `2027.json`을 한국천문연구원 특일정보(공공데이터포털)와 대조하고 `verified: true`로 변경. 노동절·제헌절 대체공휴일 적용 여부 확인. (SPEC §5.4, §7)
   - 완료 조건: 대조 결과를 PR 본문에 표로 남김.
