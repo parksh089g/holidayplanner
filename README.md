@@ -28,6 +28,7 @@ React 18 · Vite 5 · TypeScript · Tailwind CSS · Dexie(IndexedDB) · Zustand 
 npm install
 npm run dev        # http://localhost:5173/holidayplanner/
 npm test           # 단위 테스트 (Vitest)
+npx playwright install chromium  # E2E 브라우저 (처음 한 번)
 npm run test:e2e   # E2E (Playwright)
 npm run build      # dist/ 생성
 ```

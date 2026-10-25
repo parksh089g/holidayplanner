@@ -25,7 +25,7 @@ export default tseslint.config(
         'error',
         {
           selector:
-            "NewExpression[callee.name='Date'][arguments.length=1][arguments.0.type='Literal']",
+            "NewExpression[callee.name='Date'][arguments.length=1][arguments.0.value=/^\\d{4}-\\d{2}-\\d{2}$/]",
           message: "new Date('YYYY-MM-DD')는 UTC로 해석돼요. core/date.ts의 parseISO를 쓰세요.",
         },
       ],
@@ -55,7 +55,7 @@ export default tseslint.config(
         'error',
         {
           selector:
-            "NewExpression[callee.name='Date'][arguments.length=1][arguments.0.type='Literal']",
+            "NewExpression[callee.name='Date'][arguments.length=1][arguments.0.value=/^\\d{4}-\\d{2}-\\d{2}$/]",
           message: "new Date('YYYY-MM-DD')는 UTC로 해석돼요. core/date.ts의 parseISO를 쓰세요.",
         },
         {
