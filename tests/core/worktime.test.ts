@@ -3,6 +3,7 @@ import { addDaysISO } from '../../src/core/date';
 import {
   computeDay,
   computeWeek,
+  findMissingWorkDays,
   isOngoing,
   quarterLeaveTime,
   toMinutes,
@@ -275,5 +276,80 @@ describe('quarterLeaveTime', () => {
     expect(quarterLeaveTime('09:00', '18:00', 'am')).toEqual({ start: '09:00', end: '11:00' });
     expect(quarterLeaveTime('09:00', '18:00', 'pm')).toEqual({ start: '16:00', end: '18:00' });
     expect(quarterLeaveTime('08:30', '17:30', 'pm')).toEqual({ start: '15:30', end: '17:30' });
+  });
+});
+
+describe('findMissingWorkDays (SPEC §8.5 기록 누락)', () => {
+  const standard = { workStart: '09:00', workEnd: '18:00' };
+  const base = {
+    from: '2026-10-19',
+    to: '2026-10-25',
+    off: new Set<string>(),
+    standard,
+    now: { date: '2026-10-26', time: '10:00' },
+  };
+
+  it('기록이 없거나 퇴근 기록이 없는 근무일을 찾고, 정시로 채울 기록을 알려줘요', () => {
+    const result = findMissingWorkDays({
+      ...base,
+      logs: [
+        { date: '2026-10-19', clockIn: '09:00', clockOut: '18:00' },
+        { date: '2026-10-21', clockIn: '08:50', clockOut: '' },
+      ],
+      leaveQByDate: new Map([
+        ['2026-10-20', 2],
+        ['2026-10-22', 4],
+      ]),
+    });
+    expect(result).toEqual([
+      { date: '2026-10-20', reason: 'no-log', partialLeave: true },
+      {
+        date: '2026-10-21',
+        reason: 'no-clock-out',
+        partialLeave: false,
+        fill: { date: '2026-10-21', clockIn: '08:50', clockOut: '18:00' },
+      },
+      {
+        date: '2026-10-23',
+        reason: 'no-log',
+        partialLeave: false,
+        fill: { date: '2026-10-23', clockIn: '09:00', clockOut: '18:00' },
+      },
+    ]);
+  });
+
+  it('주말·공휴일·종일 휴가는 빼요', () => {
+    const result = findMissingWorkDays({
+      ...base,
+      from: '2026-10-02',
+      to: '2026-10-06',
+      off: new Set(['2026-10-03', '2026-10-05']),
+      logs: [],
+      leaveQByDate: new Map([['2026-10-06', 4]]),
+    });
+    expect(result.map((d) => d.date)).toEqual(['2026-10-02']);
+  });
+
+  it('아직 진행 중인 야간 근무는 누락이 아니에요', () => {
+    const result = findMissingWorkDays({
+      ...base,
+      from: '2026-10-22',
+      to: '2026-10-22',
+      logs: [{ date: '2026-10-22', clockIn: '22:00', clockOut: '' }],
+      leaveQByDate: new Map(),
+      now: { date: '2026-10-23', time: '01:00' },
+    });
+    expect(result).toEqual([]);
+  });
+
+  it('정시 퇴근 이후에 출근한 기록은 정시로 채울 수 없어요', () => {
+    const [day] = findMissingWorkDays({
+      ...base,
+      from: '2026-10-21',
+      to: '2026-10-21',
+      logs: [{ date: '2026-10-21', clockIn: '19:00', clockOut: '' }],
+      leaveQByDate: new Map(),
+    });
+    expect(day).toEqual({ date: '2026-10-21', reason: 'no-clock-out', partialLeave: false });
   });
 });

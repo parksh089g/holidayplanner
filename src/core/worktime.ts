@@ -1,6 +1,6 @@
-import { addDaysISO, diffDays, startOfWeekMon } from './date';
+import { addDaysISO, diffDays, eachDay, startOfWeekMon } from './date';
 import { isOffDay } from './holidays';
-import type { HHmm, ISODate, WorkLog } from './types';
+import { QUARTERS_PER_DAY, type HHmm, type ISODate, type WorkLog } from './types';
 
 /** 소정근로 1일 8시간 */
 export const DAY_STANDARD_MIN = 480;
@@ -12,7 +12,7 @@ export const WEEK_NEAR_MIN = 2880;
 export const WEEK_LIMIT_MIN = 3120;
 
 const MINUTES_PER_DAY = 1440;
-const LEAVE_CREDIT_PER_QUARTER = DAY_STANDARD_MIN / 4;
+const LEAVE_CREDIT_PER_QUARTER = DAY_STANDARD_MIN / QUARTERS_PER_DAY;
 const DEFAULT_LUNCH = { start: '12:00', end: '13:00' };
 
 export interface Lunch {
@@ -197,4 +197,58 @@ export function quarterLeaveTime(
   }
   const end = toMinutes(workEnd);
   return { start: toHHmmString(end - QUARTER_LEAVE_MIN), end: workEnd };
+}
+
+export interface MissingWorkDay {
+  date: ISODate;
+  /** 기록이 없어요 / 출근만 있고 퇴근 기록이 없어요 */
+  reason: 'no-log' | 'no-clock-out';
+  /** 그날 반차·반반차가 있어 정시로 채우면 틀려요. */
+  partialLeave: boolean;
+  /** "정시로 채우기"로 저장할 기록. 채울 수 없으면 없어요. */
+  fill?: WorkLog;
+}
+
+/**
+ * 기록이 빠진 지난 근무일 (SPEC §8.5). 주말·공휴일·회사 휴무일·종일 휴가는 빼고,
+ * 아직 진행 중인 근무(isOngoing)는 누락으로 보지 않아요.
+ */
+export function findMissingWorkDays(opts: {
+  from: ISODate;
+  to: ISODate;
+  logs: WorkLog[];
+  off: Set<ISODate>;
+  leaveQByDate: ReadonlyMap<ISODate, number>;
+  standard: { workStart: HHmm; workEnd: HHmm };
+  now: Now;
+}): MissingWorkDay[] {
+  const logByDate = new Map(opts.logs.map((l) => [l.date, l]));
+  const { workStart, workEnd } = opts.standard;
+  const missing: MissingWorkDay[] = [];
+
+  for (const date of eachDay(opts.from, opts.to)) {
+    if (isOffDay(date, opts.off)) continue;
+    const leaveQ = opts.leaveQByDate.get(date) ?? 0;
+    if (leaveQ >= QUARTERS_PER_DAY) continue;
+    const partialLeave = leaveQ > 0;
+    const log = logByDate.get(date);
+
+    if (!log) {
+      missing.push({
+        date,
+        reason: 'no-log',
+        partialLeave,
+        ...(partialLeave ? {} : { fill: { date, clockIn: workStart, clockOut: workEnd } }),
+      });
+    } else if (log.clockOut === '' && !isOngoing(log, opts.now)) {
+      const canFill = !partialLeave && log.clockIn < workEnd;
+      missing.push({
+        date,
+        reason: 'no-clock-out',
+        partialLeave,
+        ...(canFill ? { fill: { ...log, clockOut: workEnd } } : {}),
+      });
+    }
+  }
+  return missing;
 }
