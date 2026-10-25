@@ -24,7 +24,7 @@
 | --- | --- | --- |
 | 빌드 | `vite` 5.x, `typescript` 5.x | `strict: true` |
 | UI | `react` 18.x, `react-dom` 18.x | |
-| 라우팅 | `react-router-dom` 6.x **HashRouter** | GitHub Pages는 SPA 경로 새로고침 시 404가 나므로 해시 라우팅 사용 |
+| 라우팅 | `react-router` 7.x **HashRouter** | GitHub Pages는 SPA 경로 새로고침 시 404가 나므로 해시 라우팅 사용. 6.x는 보안 수정이 없고(7.18+에만) 8.x는 React 19가 필요해서 7.x |
 | 스타일 | `tailwindcss` 3.x | 모바일 우선, 다크 모드 `class` 전략 |
 | 저장소 | `dexie` 4.x, `dexie-react-hooks` | IndexedDB 래퍼, 실시간 쿼리 |
 | 상태 | `zustand` 4.x | UI 상태만 (데이터는 Dexie가 원천) |

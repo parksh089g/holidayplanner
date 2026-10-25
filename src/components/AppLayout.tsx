@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router';
 import { useApplyTheme } from '../hooks/useApplyTheme';
 import { useUiStore } from '../store/ui';
 import { SettingsIcon } from './icons';
