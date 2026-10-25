@@ -77,3 +77,10 @@ export const MonitorIcon = (props: IconProps) => (
     <path d="M8 20h8M12 16v4" />
   </Icon>
 );
+
+export const AlertIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3 2 20h20L12 3z" />
+    <path d="M12 10v4M12 17h.01" />
+  </Icon>
+);
