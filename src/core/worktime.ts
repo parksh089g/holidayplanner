@@ -179,3 +179,22 @@ export function computeWeek(weekStart: ISODate, logs: WorkLog[], ctx: WeekContex
 export function isOngoing(log: WorkLog, now: Now): boolean {
   return log.clockOut === '' && endMinutes(log, toMinutes(log.clockIn), now) !== undefined;
 }
+
+const QUARTER_LEAVE_MIN = 120;
+
+const toHHmmString = (minutes: number): HHmm =>
+  `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+
+/** 반반차(2시간) 시각: 오전은 출근 후 2시간, 오후는 퇴근 전 2시간 (SPEC §8.3 "반반차 시각") */
+export function quarterLeaveTime(
+  workStart: HHmm,
+  workEnd: HHmm,
+  part: 'am' | 'pm',
+): { start: HHmm; end: HHmm } {
+  if (part === 'am') {
+    const start = toMinutes(workStart);
+    return { start: workStart, end: toHHmmString(start + QUARTER_LEAVE_MIN) };
+  }
+  const end = toMinutes(workEnd);
+  return { start: toHHmmString(end - QUARTER_LEAVE_MIN), end: workEnd };
+}

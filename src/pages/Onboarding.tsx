@@ -7,6 +7,7 @@ import { completeOnboarding, getProfile } from '../db/repo';
 import { ValidationError, isHHmm, isISODate } from '../db/validate';
 import { formatDays, formatDotDate, parseDaysToQuarters } from '../lib/format';
 import { todayISO } from '../lib/today';
+import { inputClass } from '../lib/ui';
 
 type Step = 1 | 2 | 3;
 
@@ -29,9 +30,6 @@ const STEP_TITLE: Record<Step, string> = {
   2: '근무시간을 확인해 주세요',
   3: '현재 연차 기간에 이미 쓴 연차를 알려 주세요',
 };
-
-const inputClass =
-  'mt-1 block h-12 w-full rounded-lg border border-gray-300 bg-white px-3 text-base text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/30 aria-[invalid=true]:border-red-600 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100';
 
 function Field({ label, children }: { label: string; children: (id: string) => ReactNode }) {
   const id = useId();
