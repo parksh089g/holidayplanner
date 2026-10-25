@@ -5,7 +5,7 @@
 
 ## M0. 프로젝트 준비 (1주)
 
-- [ ] **T0-1 스캐폴딩**: `npm create vite@latest . -- --template react-ts`, Tailwind·ESLint·Prettier·Vitest 설정, `npm run dev/build/test/lint` 동작.
+- [x] **T0-1 스캐폴딩**: `npm create vite@latest . -- --template react-ts`, Tailwind·ESLint·Prettier·Vitest 설정, `npm run dev/build/test/lint` 동작.
   - 완료 조건: 빈 화면에 "연차 플래너"가 뜨고 `npm test`가 통과.
 - [ ] **T0-2 배포 파이프라인**: `vite.config.ts`에 `base: '/holidayplanner/'`, `.github/workflows/deploy.yml`(test → build → deploy-pages). 저장소 Settings → Pages → Source = GitHub Actions.
   - 완료 조건: `https://<github-id>.github.io/holidayplanner/`에서 화면이 열림.
