@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- maskable: 배경을 꽉 채우고, 달력은 가운데 안전 영역(반지름 40%) 안에 둬요. -->
+  <rect width="512" height="512" fill="#2563eb"/>
+  <g transform="translate(146 140) scale(0.786)">
+    <rect y="28" width="280" height="268" rx="40" fill="#ffffff"/>
+    <path d="M0 68a40 40 0 0 1 40-40h200a40 40 0 0 1 40 40v40H0z" fill="#1e3a8a"/>
+    <rect x="62" width="28" height="68" rx="14" fill="#ffffff"/>
+    <rect x="190" width="28" height="68" rx="14" fill="#ffffff"/>
+    <circle cx="140" cy="200" r="46" fill="#f59e0b"/>
+  </g>
+</svg>
