@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatDDay,
+  formatDateRange,
   formatDays,
   formatDotDate,
   formatMinutes,
@@ -78,5 +79,13 @@ describe('toHHmm', () => {
   it('로컬 시각을 분 단위 그대로 HH:mm으로 바꿔요', () => {
     expect(toHHmm(new Date(2026, 9, 23, 9, 5, 59))).toBe('09:05');
     expect(toHHmm(new Date(2026, 9, 23, 23, 0))).toBe('23:00');
+  });
+});
+
+describe('formatDateRange', () => {
+  it('같은 해는 연도 없이, 다른 해는 시작에만 연도를 붙여요', () => {
+    expect(formatDateRange('2026-09-24', '2026-10-05', 2026)).toBe('9/24(목) – 10/5(월)');
+    expect(formatDateRange('2027-09-11', '2027-09-16', 2026)).toBe('2027년 9/11(토) – 9/16(목)');
+    expect(formatDateRange('2026-12-25', '2027-01-03', 2026)).toBe('12/25(금) – 2027년 1/3(일)');
   });
 });

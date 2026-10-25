@@ -118,3 +118,30 @@ export function suggestBridges(
     };
   });
 }
+
+/**
+ * 추천 화면 연도 필터(SPEC §8.4)에 맞는 기간.
+ * year가 없으면 오늘~내년 말(기본 옵션과 같음), 올해면 오늘~올해 말, 지난 해면 빈 기간이에요.
+ */
+export function bridgeRange(asOf: ISODate, year?: number): { from: ISODate; to: ISODate } {
+  if (year === undefined) {
+    const { from, to } = defaultBridgeOptions(asOf);
+    return { from, to };
+  }
+  const start = `${year}-01-01`;
+  return { from: asOf > start ? asOf : start, to: `${year}-12-31` };
+}
+
+export type CandidateDayKind = 'off' | 'leave' | 'planned';
+
+/** 후보 구간의 날마다 휴무·연차·이미 계획한 연차를 구분해요 (후보 카드 미니 달력). */
+export function candidateDays(
+  candidate: BridgeCandidate,
+  plannedLeaveDates: Set<ISODate>,
+): { date: ISODate; kind: CandidateDayKind }[] {
+  const leave = new Set(candidate.leaveDates);
+  return eachDay(candidate.start, candidate.end).map((date) => ({
+    date,
+    kind: leave.has(date) ? 'leave' : plannedLeaveDates.has(date) ? 'planned' : 'off',
+  }));
+}
