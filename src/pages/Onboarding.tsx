@@ -2,28 +2,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Navigate, useNavigate } from 'react-router';
 import { currentLeavePeriod } from '../core/accrual';
-import type { HHmm } from '../core/types';
 import { completeOnboarding, getProfile } from '../db/repo';
-import { ValidationError, isHHmm, isISODate } from '../db/validate';
+import { ValidationError, isISODate } from '../db/validate';
 import { formatDays, formatDotDate, parseDaysToQuarters } from '../lib/format';
 import { todayISO } from '../lib/today';
 import { inputClass } from '../lib/ui';
+import { DEFAULT_WORK_TIMES, workTimesError, type WorkTimes } from '../lib/workTimes';
 
 type Step = 1 | 2 | 3;
-
-interface WorkTimes {
-  workStart: HHmm;
-  workEnd: HHmm;
-  lunchStart: HHmm;
-  lunchEnd: HHmm;
-}
-
-const DEFAULT_TIMES: WorkTimes = {
-  workStart: '09:00',
-  workEnd: '18:00',
-  lunchStart: '12:00',
-  lunchEnd: '13:00',
-};
 
 const STEP_TITLE: Record<Step, string> = {
   1: '입사일을 알려 주세요',
@@ -43,16 +29,6 @@ function Field({ label, children }: { label: string; children: (id: string) => R
   );
 }
 
-function validateTimes(t: WorkTimes): string | undefined {
-  if (!Object.values(t).every(isHHmm)) return '시각을 모두 입력해 주세요.';
-  if (t.workStart >= t.workEnd) return '퇴근 시각은 출근 시각보다 늦어야 해요.';
-  if (t.lunchStart >= t.lunchEnd) return '점심 종료 시각은 시작 시각보다 늦어야 해요.';
-  if (t.lunchStart < t.workStart || t.lunchEnd > t.workEnd) {
-    return '점심시간은 근무시간 안에 있어야 해요.';
-  }
-  return undefined;
-}
-
 /** SPEC §8.1: 입사일 → 근무시간 → 이미 쓴 연차 */
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -60,7 +36,7 @@ export default function Onboarding() {
   const existing = useLiveQuery(async () => (await getProfile()) ?? null, [], 'loading' as const);
   const [step, setStep] = useState<Step>(1);
   const [hireDate, setHireDate] = useState('');
-  const [times, setTimes] = useState<WorkTimes>(DEFAULT_TIMES);
+  const [times, setTimes] = useState<WorkTimes>(DEFAULT_WORK_TIMES);
   const [usedDays, setUsedDays] = useState('0');
   const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
@@ -80,7 +56,7 @@ export default function Onboarding() {
       if (!isISODate(hireDate)) return '입사일을 입력해 주세요.';
       if (hireDate > today) return '입사일은 오늘 이후일 수 없어요.';
     }
-    if (step === 2) return validateTimes(times);
+    if (step === 2) return workTimesError(times);
     if (step === 3 && usedQ === undefined) return '0.25일 단위로 0일 이상 입력해 주세요.';
     return undefined;
   };

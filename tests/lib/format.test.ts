@@ -89,3 +89,11 @@ describe('formatDateRange', () => {
     expect(formatDateRange('2026-12-25', '2027-01-03', 2026)).toBe('12/25(금) – 2027년 1/3(일)');
   });
 });
+
+describe('parseDaysToQuarters allowNegative', () => {
+  it('수동 보정은 음수(감액)도 받아요', () => {
+    expect(parseDaysToQuarters('-1.5', { allowNegative: true })).toBe(-6);
+    expect(parseDaysToQuarters('-1.5')).toBeUndefined();
+    expect(parseDaysToQuarters('-0.3', { allowNegative: true })).toBeUndefined();
+  });
+});
