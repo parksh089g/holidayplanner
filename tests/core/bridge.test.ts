@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { defaultBridgeOptions, suggestBridges, type BridgeOptions } from '../../src/core/bridge';
+import {
+  bridgeRange,
+  candidateDays,
+  defaultBridgeOptions,
+  suggestBridges,
+  type BridgeOptions,
+} from '../../src/core/bridge';
 import { buildOffDaySet } from '../../src/core/holidays';
 import type { Holiday } from '../../src/core/types';
 import { holidaysOf } from './fixtures';
@@ -206,5 +212,46 @@ describe('defaultBridgeOptions', () => {
       requireHoliday: true,
       plannedLeaveDates: new Set(),
     });
+  });
+});
+
+describe('bridgeRange (SPEC §8.4 연도 필터)', () => {
+  it('연도를 고르지 않으면 오늘부터 내년 말까지예요 (기본 옵션과 같아요)', () => {
+    expect(bridgeRange('2026-10-23')).toEqual({ from: '2026-10-23', to: '2027-12-31' });
+  });
+
+  it('올해를 고르면 오늘부터 올해 말까지, 내년을 고르면 내년 한 해예요', () => {
+    expect(bridgeRange('2026-10-23', 2026)).toEqual({ from: '2026-10-23', to: '2026-12-31' });
+    expect(bridgeRange('2026-10-23', 2027)).toEqual({ from: '2027-01-01', to: '2027-12-31' });
+  });
+
+  it('지난 해를 고르면 빈 기간이에요 (추천 없음)', () => {
+    const range = bridgeRange('2026-10-23', 2025);
+    expect(range.from > range.to).toBe(true);
+    expect(suggestBridges(off, holidays, options(range))).toEqual([]);
+  });
+});
+
+describe('candidateDays (후보 카드 미니 달력)', () => {
+  it('구간의 날마다 휴무·연차·계획한 연차를 구분해요', () => {
+    const planned = new Set(['2026-05-04']);
+    const [candidate] = suggestBridges(
+      off,
+      holidays,
+      options({ from: '2026-05-01', to: '2026-05-10', plannedLeaveDates: planned }),
+    );
+    expect(candidate).toMatchObject({ start: '2026-05-01', end: '2026-05-10' });
+    expect(candidateDays(candidate, planned)).toEqual([
+      { date: '2026-05-01', kind: 'off' },
+      { date: '2026-05-02', kind: 'off' },
+      { date: '2026-05-03', kind: 'off' },
+      { date: '2026-05-04', kind: 'planned' },
+      { date: '2026-05-05', kind: 'off' },
+      { date: '2026-05-06', kind: 'leave' },
+      { date: '2026-05-07', kind: 'leave' },
+      { date: '2026-05-08', kind: 'leave' },
+      { date: '2026-05-09', kind: 'off' },
+      { date: '2026-05-10', kind: 'off' },
+    ]);
   });
 });

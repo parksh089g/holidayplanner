@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import type { BridgeCandidate } from '../../core/bridge';
 import type { ISODate } from '../../core/types';
-import { formatShortDate } from '../../lib/format';
+import { formatDateRange, formatShortDate } from '../../lib/format';
 import { Card } from '../Card';
 
 /** SPEC §8.2-3: 오늘 이후 1위 추천 연휴 + 더 보기 */
@@ -41,9 +41,7 @@ export function NextBridgeCard({
       ) : (
         <>
           <p className="text-lg font-semibold">
-            {/* 끝 날짜는 시작과 같은 해면 연도를 생략해요. */}
-            {date(candidate.start)} –{' '}
-            {formatShortDate(candidate.end, Number(candidate.start.slice(0, 4)))}
+            {formatDateRange(candidate.start, candidate.end, year)}
           </p>
           <p className="mt-1 text-sm">
             <strong>{candidate.totalDays}일 쉬기</strong> · 연차 {candidate.leaveDays}일 · 효율{' '}

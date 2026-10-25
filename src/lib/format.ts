@@ -42,3 +42,8 @@ export function formatMinutes(minutes: number): string {
   if (hours === 0) return `${sign}${mins}분`;
   return `${sign}${hours}시간${mins === 0 ? '' : ` ${mins}분`}`;
 }
+
+/** '9/24(목) – 10/5(월)'. 시작이 refYear와 다른 해면 연도를 붙이고, 끝은 시작과 같은 해면 연도를 생략해요. */
+export function formatDateRange(start: ISODate, end: ISODate, refYear: number): string {
+  return `${formatShortDate(start, refYear)} – ${formatShortDate(end, Number(start.slice(0, 4)))}`;
+}
