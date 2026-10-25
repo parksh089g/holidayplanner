@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fullDayLeaveDates, leaveQuartersByDate } from '../../src/core/leave';
+import { checkNewLeave, fullDayLeaveDates, leaveQuartersByDate } from '../../src/core/leave';
 import type { LeaveEntry } from '../../src/core/types';
 
 const e = (date: string, quarters: number, extra: Partial<LeaveEntry> = {}): LeaveEntry => ({
@@ -38,5 +38,47 @@ describe('fullDayLeaveDates', () => {
       e('2026-10-23', 40, { isBulk: true }),
     ]);
     expect([...dates].sort()).toEqual(['2026-11-02', '2026-11-04']);
+  });
+});
+
+describe('checkNewLeave (SPEC §8.3)', () => {
+  const add = (quarters: number, extra: Partial<LeaveEntry> = {}) => ({
+    date: '2026-11-02',
+    quarters,
+    type: 'annual' as const,
+    ...extra,
+  });
+
+  it('휴무일에는 연차를 막아요 (다른 유형은 허용)', () => {
+    expect(checkNewLeave(add(4), [], true)).toBe('annual-on-off-day');
+    expect(checkNewLeave(add(2, { part: 'am' }), [], true)).toBe('annual-on-off-day');
+    expect(checkNewLeave(add(4, { type: 'special' }), [], true)).toBeUndefined();
+  });
+
+  it('하루 1일(4 quarter)을 넘기면 막아요', () => {
+    expect(checkNewLeave(add(4), [e('2026-11-02', 2, { part: 'am' })], false)).toBe('over-one-day');
+    expect(
+      checkNewLeave(add(2, { part: 'pm' }), [e('2026-11-02', 2, { part: 'am' })], false),
+    ).toBeUndefined();
+    expect(
+      checkNewLeave(
+        add(1, { part: 'pm' }),
+        [e('2026-11-02', 2, { part: 'am' }), e('2026-11-02', 1, { part: 'pm' })],
+        false,
+      ),
+    ).toBe('same-part');
+  });
+
+  it('같은 오전·오후를 두 번 넣으면 막아요', () => {
+    expect(checkNewLeave(add(2, { part: 'am' }), [e('2026-11-02', 2, { part: 'am' })], false)).toBe(
+      'same-part',
+    );
+    expect(checkNewLeave(add(1, { part: 'am' }), [e('2026-11-02', 1, { part: 'am' })], false)).toBe(
+      'same-part',
+    );
+  });
+
+  it('온보딩 일괄 차감 항목은 그날 휴가로 세지 않아요', () => {
+    expect(checkNewLeave(add(4), [e('2026-11-02', 29, { isBulk: true })], false)).toBeUndefined();
   });
 });

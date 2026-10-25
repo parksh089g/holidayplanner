@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { addDaysISO } from '../../src/core/date';
-import { computeDay, computeWeek, isOngoing, toMinutes } from '../../src/core/worktime';
+import {
+  computeDay,
+  computeWeek,
+  isOngoing,
+  quarterLeaveTime,
+  toMinutes,
+} from '../../src/core/worktime';
 import type { WorkLog } from '../../src/core/types';
 
 const WEEKDAY = { isOffDay: false, leaveQ: 0 };
@@ -261,5 +267,13 @@ describe('isOngoing', () => {
     expect(isOngoing(log('09:00', '18:00'), now('2026-10-19', '15:00'))).toBe(false);
     expect(isOngoing(log('09:00', ''), now('2026-10-19', '08:00'))).toBe(false);
     expect(isOngoing(log('09:00', ''), now('2026-10-20', '10:00'))).toBe(false);
+  });
+});
+
+describe('quarterLeaveTime', () => {
+  it('반반차 오전은 출근 후 2시간, 오후는 퇴근 전 2시간이에요', () => {
+    expect(quarterLeaveTime('09:00', '18:00', 'am')).toEqual({ start: '09:00', end: '11:00' });
+    expect(quarterLeaveTime('09:00', '18:00', 'pm')).toEqual({ start: '16:00', end: '18:00' });
+    expect(quarterLeaveTime('08:30', '17:30', 'pm')).toEqual({ start: '15:30', end: '17:30' });
   });
 });

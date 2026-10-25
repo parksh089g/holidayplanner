@@ -22,3 +22,24 @@ export function fullDayLeaveDates(entries: LeaveEntry[]): Set<ISODate> {
   }
   return dates;
 }
+
+export type LeaveProblem = 'annual-on-off-day' | 'over-one-day' | 'same-part';
+
+/**
+ * 휴가를 새로 넣기 전에 확인해요 (SPEC §8.3).
+ * - 휴무일에는 연차를 막아요 (다른 유형은 허용)
+ * - 그날 휴가 합계가 하루(4 quarter)를 넘으면 막아요
+ * - 같은 오전·오후에 반차·반반차가 이미 있으면 막아요
+ */
+export function checkNewLeave(
+  entry: Pick<LeaveEntry, 'quarters' | 'type' | 'part'>,
+  sameDay: LeaveEntry[],
+  isOffDay: boolean,
+): LeaveProblem | undefined {
+  if (entry.type === 'annual' && isOffDay) return 'annual-on-off-day';
+  const others = sameDay.filter((e) => !e.isBulk);
+  const total = others.reduce((sum, e) => sum + e.quarters, entry.quarters);
+  if (total > QUARTERS_PER_DAY) return 'over-one-day';
+  if (entry.part && others.some((e) => e.part === entry.part)) return 'same-part';
+  return undefined;
+}
