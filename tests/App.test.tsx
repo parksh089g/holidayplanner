@@ -1,9 +1,12 @@
 /** @vitest-environment jsdom */
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import 'fake-indexeddb/auto';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppRoutes } from '../src/App';
+import { getProfile, saveProfile } from '../src/db/repo';
 import { useUiStore } from '../src/store/ui';
+import { resetDb, sampleProfile } from './db/fixtures';
 
 type ChangeListener = (e: { matches: boolean }) => void;
 let systemDark = false;
@@ -14,7 +17,8 @@ function setSystemDark(dark: boolean) {
   listeners.forEach((listener) => listener({ matches: dark }));
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDb();
   systemDark = false;
   listeners = [];
   window.matchMedia = vi.fn().mockImplementation((media: string) => ({
@@ -130,5 +134,22 @@ describe('다크 모드 토글', () => {
     fireEvent.click(toggle()); // dark
     act(() => setSystemDark(false));
     expect(isDark()).toBe(true);
+  });
+
+  it('프로필이 있으면 저장된 테마를 적용해요', async () => {
+    await saveProfile(sampleProfile({ theme: 'dark' }));
+    renderAt('/');
+    await waitFor(() => expect(isDark()).toBe(true));
+    expect(toggle().getAttribute('aria-label')).toContain('어둡게');
+  });
+
+  it('프로필이 있으면 바꾼 테마를 프로필(Dexie)에 저장해요', async () => {
+    await saveProfile(sampleProfile({ theme: 'light' }));
+    renderAt('/');
+    await waitFor(() => expect(toggle().getAttribute('aria-label')).toContain('밝게'));
+    fireEvent.click(toggle());
+    await waitFor(() => expect(toggle().getAttribute('aria-label')).toContain('어둡게'));
+    expect((await getProfile())?.theme).toBe('dark');
+    expect(useUiStore.getState().theme).toBe('system');
   });
 });
