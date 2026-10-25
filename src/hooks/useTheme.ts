@@ -1,18 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { getProfile, updateProfile } from '../db/repo';
-import { nextTheme, useUiStore } from '../store/ui';
+import { nextTheme } from '../lib/theme';
 
-/** 프로필이 있으면 프로필(Dexie)의 테마를 쓰고 저장해요. 온보딩 전에는 UI 상태만 바꿔요. */
+/** 테마는 프로필(Dexie)에 저장해요. 온보딩 전(프로필 없음)에는 시스템 설정을 따라요. */
 export function useTheme() {
   const profile = useLiveQuery(getProfile);
-  const localTheme = useUiStore((s) => s.theme);
-  const setLocalTheme = useUiStore((s) => s.setTheme);
-  const theme = profile?.theme ?? localTheme;
+  const theme = profile?.theme ?? 'system';
 
   const cycleTheme = () => {
-    const next = nextTheme(theme);
-    if (profile) void updateProfile({ theme: next });
-    else setLocalTheme(next);
+    if (profile) void updateProfile({ theme: nextTheme(theme) });
   };
 
   return { theme, cycleTheme };
