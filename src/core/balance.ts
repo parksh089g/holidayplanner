@@ -144,3 +144,14 @@ export function computeBalance(
     nextGrant,
   };
 }
+
+/**
+ * from(포함) 이후 asOf 전에 소멸한 부여분의 남은 양.
+ * 앱을 쓰기 전 기간은 사용 기록이 없어 남은 것처럼 보이므로, 홈에서는 온보딩 이후 소멸분만 보여줘요.
+ */
+export function expiredQBetween(balances: GrantBalance[], from: ISODate, asOf: ISODate): number {
+  return sum(
+    balances.filter((b) => b.grant.expireDate >= from && b.grant.expireDate < asOf),
+    (b) => Math.max(0, b.remainingQ),
+  );
+}

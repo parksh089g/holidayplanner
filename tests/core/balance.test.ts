@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeAutoGrants } from '../../src/core/accrual';
-import { computeBalance } from '../../src/core/balance';
+import { computeBalance, expiredQBetween } from '../../src/core/balance';
 import type { ISODate, LeaveEntry, LeaveType, ManualGrant } from '../../src/core/types';
 
 let seq = 0;
@@ -189,5 +189,22 @@ describe('computeBalance', () => {
     // 현재 유효 부여분 합계에는 들어가지 않아요.
     expect(summary.plannedQ).toBe(0);
     expect(summary.remainingQ).toBe(68);
+  });
+});
+
+describe('expiredQBetween', () => {
+  it('앱을 쓰기 시작한 뒤(from 이후) 소멸한 잔여만 세요 (B 계열 보조)', () => {
+    // 2021-03-02 입사, 2026-10-23 온보딩. 과거 연차 기간은 사용 기록이 없어 전부 남은 걸로 보이지만 세지 않아요.
+    const grants = computeAutoGrants('2021-03-02', '2027-12-31');
+    const summary = computeBalance(grants, [leave('2026-11-02', 8)], '2027-03-10');
+    expect(summary.expiredQ).toBeGreaterThan(60);
+    // 2027-03-01에 소멸한 5년차 17일 중 2일 사용 → 15일(60Q)
+    expect(expiredQBetween(summary.grants, '2026-10-23', '2027-03-10')).toBe(60);
+  });
+
+  it('아직 소멸 전이거나 잔여가 없으면 0이에요', () => {
+    const grants = computeAutoGrants('2021-03-02', '2027-12-31');
+    const summary = computeBalance(grants, [], '2026-10-23');
+    expect(expiredQBetween(summary.grants, '2026-10-23', '2026-10-23')).toBe(0);
   });
 });

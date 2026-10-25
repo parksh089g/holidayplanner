@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { addDaysISO } from '../../src/core/date';
-import { computeDay, computeWeek, toMinutes } from '../../src/core/worktime';
+import { computeDay, computeWeek, isOngoing, toMinutes } from '../../src/core/worktime';
 import type { WorkLog } from '../../src/core/types';
 
 const WEEKDAY = { isOffDay: false, leaveQ: 0 };
@@ -246,5 +246,20 @@ describe('computeWeek', () => {
     });
     expect(week.days[2]).toMatchObject({ inProgress: true, workedMin: 210 });
     expect(week.workedMin).toBe(210);
+  });
+});
+
+describe('isOngoing', () => {
+  const now = (date: string, time: string) => ({ date, time });
+
+  it('퇴근 전이고 출근 후 24시간 안이면 진행 중이에요 (자정 넘김 포함)', () => {
+    expect(isOngoing(log('09:00', ''), now('2026-10-19', '15:00'))).toBe(true);
+    expect(isOngoing(log('22:00', ''), now('2026-10-20', '01:30'))).toBe(true);
+  });
+
+  it('퇴근했거나, 출근 전이거나, 24시간이 넘었으면 아니에요', () => {
+    expect(isOngoing(log('09:00', '18:00'), now('2026-10-19', '15:00'))).toBe(false);
+    expect(isOngoing(log('09:00', ''), now('2026-10-19', '08:00'))).toBe(false);
+    expect(isOngoing(log('09:00', ''), now('2026-10-20', '10:00'))).toBe(false);
   });
 });
