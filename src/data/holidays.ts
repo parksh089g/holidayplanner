@@ -118,3 +118,15 @@ export async function loadHolidays(years: number[], fetcher?: FetchLike): Promis
 export function mergeHolidays(publicHolidays: Holiday[], customHolidays: Holiday[]): Holiday[] {
   return [...publicHolidays, ...customHolidays].sort((a, b) => compareISO(a.date, b.date));
 }
+
+/**
+ * 서비스워커가 페이지를 처음 제어하기 시작할 때 공휴일 파일을 다시 받아 SW 캐시를 채워요.
+ * 첫 방문의 요청은 SW가 제어하기 전에 나가서 캐시에 남지 않기 때문이에요 (오프라인 대비, SPEC §9).
+ * 메모리 캐시는 건드리지 않고, 실패해도 조용히 넘어가요.
+ */
+export async function prefetchHolidayFiles(
+  years: number[],
+  fetcher: FetchLike = (url) => fetch(url),
+): Promise<void> {
+  await Promise.allSettled(years.map((year) => fetcher(holidayUrl(year))));
+}

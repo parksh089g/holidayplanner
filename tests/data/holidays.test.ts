@@ -7,6 +7,7 @@ import {
   loadHolidays,
   mergeHolidays,
   parseHolidayFile,
+  prefetchHolidayFiles,
   type FetchLike,
 } from '../../src/data/holidays';
 import { ValidationError } from '../../src/db/validate';
@@ -161,5 +162,26 @@ describe('mergeHolidays', () => {
     ]);
     const dates = merged.map((x) => x.date);
     expect(dates).toEqual([...dates].sort());
+  });
+});
+
+describe('prefetchHolidayFiles', () => {
+  it('연도별 파일을 다시 요청하고, 실패해도 예외를 내지 않아요', async () => {
+    const fetcher = vi
+      .fn<FetchLike>()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => file2026 })
+      .mockRejectedValueOnce(new TypeError('offline'));
+    await expect(prefetchHolidayFiles([2026, 2027], fetcher)).resolves.toBeUndefined();
+    expect(fetcher.mock.calls.map((c) => c[0])).toEqual([
+      '/holidayplanner/holidays/2026.json',
+      '/holidayplanner/holidays/2027.json',
+    ]);
+  });
+
+  it('메모리 캐시와 따로 움직여요 (캐시된 연도도 다시 요청해요)', async () => {
+    const fetcher = fakeFetch({ 2026: file2026 });
+    await loadHolidayYear(2026, fetcher);
+    await prefetchHolidayFiles([2026], fetcher);
+    expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
