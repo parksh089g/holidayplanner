@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { ThemeMode } from '../store/ui';
+import type { ThemeMode } from '../core/types';
 
 /** <html>에 dark 클래스를 붙여요. 시스템 모드면 OS 설정 변경을 바로 따라가요. */
 export function useApplyTheme(theme: ThemeMode) {

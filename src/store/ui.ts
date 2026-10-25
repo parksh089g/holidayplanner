@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-
-export type ThemeMode = 'system' | 'light' | 'dark';
+import type { ThemeMode } from '../core/types';
 
 export const THEME_LABEL: Record<ThemeMode, string> = {
   system: '시스템',
@@ -14,14 +13,16 @@ const NEXT_THEME: Record<ThemeMode, ThemeMode> = {
   dark: 'system',
 };
 
+export const nextTheme = (theme: ThemeMode) => NEXT_THEME[theme];
+
 interface UiState {
-  // TODO(T2-1): 프로필(Dexie)의 theme과 연결해 저장해요. 지금은 새로고침하면 시스템으로 돌아가요.
+  /** 프로필이 없을 때(온보딩 전) 쓰는 테마. 프로필이 있으면 프로필 값이 우선이에요. */
   theme: ThemeMode;
-  cycleTheme: () => void;
+  setTheme: (theme: ThemeMode) => void;
 }
 
 /** UI 상태만 둬요. 데이터의 원천은 Dexie예요 (CLAUDE.md). */
 export const useUiStore = create<UiState>()((set) => ({
   theme: 'system',
-  cycleTheme: () => set((state) => ({ theme: NEXT_THEME[state.theme] })),
+  setTheme: (theme) => set({ theme }),
 }));

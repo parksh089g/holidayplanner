@@ -1,4 +1,6 @@
-import { THEME_LABEL, useUiStore, type ThemeMode } from '../store/ui';
+import type { ThemeMode } from '../core/types';
+import { useTheme } from '../hooks/useTheme';
+import { THEME_LABEL } from '../store/ui';
 import { MonitorIcon, MoonIcon, SunIcon } from './icons';
 
 const THEME_ICON: Record<ThemeMode, typeof SunIcon> = {
@@ -9,8 +11,7 @@ const THEME_ICON: Record<ThemeMode, typeof SunIcon> = {
 
 /** 누를 때마다 시스템 → 밝게 → 어둡게 순서로 바꿔요. */
 export function ThemeToggle({ showLabel = false }: { showLabel?: boolean }) {
-  const theme = useUiStore((s) => s.theme);
-  const cycleTheme = useUiStore((s) => s.cycleTheme);
+  const { theme, cycleTheme } = useTheme();
   const Icon = THEME_ICON[theme];
   const label = THEME_LABEL[theme];
 

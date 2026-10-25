@@ -75,3 +75,21 @@ export interface WorkLog {
   breakMinutes?: number;
   note?: string;
 }
+
+// ── 프로필 (SPEC §6) ──
+
+export type ThemeMode = 'system' | 'light' | 'dark';
+
+export interface Profile {
+  /** 항상 'me' 한 건 */
+  id: 'me';
+  hireDate: ISODate;
+  workStart: HHmm;
+  workEnd: HHmm;
+  lunchStart: HHmm;
+  lunchEnd: HHmm;
+  theme: ThemeMode;
+  /** ISO datetime */
+  onboardedAt: string;
+  schemaVersion: 1;
+}

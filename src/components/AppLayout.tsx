@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router';
 import { useApplyTheme } from '../hooks/useApplyTheme';
-import { useUiStore } from '../store/ui';
+import { useTheme } from '../hooks/useTheme';
 import { SettingsIcon } from './icons';
 import { MAIN_TABS, SETTINGS_TAB, type NavItem } from './navItems';
 import { ThemeToggle } from './ThemeToggle';
@@ -57,7 +57,7 @@ function SidebarLink({ item }: { item: NavItem }) {
 }
 
 export function AppLayout() {
-  const theme = useUiStore((s) => s.theme);
+  const { theme } = useTheme();
   useApplyTheme(theme);
 
   return (
