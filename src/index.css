@@ -7,5 +7,5 @@ html.dark {
 }
 
 body {
-  @apply bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
+  @apply break-keep bg-white text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100;
 }
