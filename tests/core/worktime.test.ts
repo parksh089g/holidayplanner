@@ -97,11 +97,35 @@ describe('computeDay', () => {
   });
 
   it('퇴근 전이면 now까지 근무로 보고 진행 중으로 표시해요', () => {
-    expect(computeDay(log('09:00', ''), { ...WEEKDAY, now: '15:30' })).toMatchObject({
+    const now = { date: '2026-10-19', time: '15:30' };
+    expect(computeDay(log('09:00', ''), { ...WEEKDAY, now })).toMatchObject({
       inProgress: true,
       breakMin: 60,
       workedMin: 330,
     });
+  });
+
+  it('퇴근 전 야간 근무는 자정을 넘겨도 now까지 계산해요', () => {
+    const now = { date: '2026-10-20', time: '01:30' };
+    expect(computeDay(log('22:00', ''), { ...WEEKDAY, now })).toMatchObject({
+      inProgress: true,
+      breakMin: 0,
+      workedMin: 210,
+    });
+  });
+
+  it('now가 출근 시각보다 이르면 0분이에요 (24시간으로 넘기지 않아요)', () => {
+    const now = { date: '2026-10-19', time: '08:40' };
+    expect(computeDay(log('09:00', ''), { ...WEEKDAY, now })).toMatchObject({
+      inProgress: true,
+      workedMin: 0,
+      overtimeMin: 0,
+    });
+  });
+
+  it('출근 후 24시간이 넘은 진행 중 기록은 퇴근 누락으로 보고 0분이에요', () => {
+    const now = { date: '2026-10-20', time: '10:00' };
+    expect(computeDay(log('09:00', ''), { ...WEEKDAY, now }).workedMin).toBe(0);
   });
 
   it('퇴근 전인데 now가 없으면 근무 0분이에요', () => {
@@ -114,6 +138,18 @@ describe('computeDay', () => {
 
   it('휴게가 근무시간보다 길어도 음수가 되지 않아요', () => {
     expect(computeDay(log('09:00', '09:30', { breakMinutes: 60 }), WEEKDAY).workedMin).toBe(0);
+  });
+
+  it('휴게가 null이면 입력하지 않은 것으로 보고 점심을 자동 차감해요', () => {
+    const stored = { ...log('09:00', '18:00'), breakMinutes: null } as unknown as WorkLog;
+    expect(computeDay(stored, WEEKDAY)).toMatchObject({ breakMin: 60, workedMin: 480 });
+  });
+
+  it('음수 휴게는 0분으로 봐요', () => {
+    expect(computeDay(log('09:00', '18:00', { breakMinutes: -30 }), WEEKDAY)).toMatchObject({
+      breakMin: 0,
+      workedMin: 540,
+    });
   });
 });
 
@@ -189,7 +225,7 @@ describe('computeWeek', () => {
     expect(week.days[4]).toMatchObject({ hasLog: false, workedMin: 0, leaveCreditMin: 480 });
   });
 
-  it('진행 중 기록은 now의 날짜에만 현재 시각을 적용해요', () => {
+  it('진행 중 기록은 출근 후 24시간 안에서만 현재 시각까지 계산해요', () => {
     const logs: WorkLog[] = [
       { date: '2026-10-21', clockIn: '09:00', clockOut: '' },
       { date: '2026-10-22', clockIn: '09:00', clockOut: '' },
@@ -200,5 +236,15 @@ describe('computeWeek', () => {
     });
     expect(week.days[2]).toMatchObject({ inProgress: true, workedMin: 0 });
     expect(week.days[3]).toMatchObject({ inProgress: true, workedMin: 120 });
+  });
+
+  it('자정을 넘긴 진행 중 야간 근무도 주 합계에 들어가요', () => {
+    const logs: WorkLog[] = [{ date: '2026-10-21', clockIn: '22:00', clockOut: '' }];
+    const week = computeWeek(monday, logs, {
+      off: new Set(),
+      now: { date: '2026-10-22', time: '01:30' },
+    });
+    expect(week.days[2]).toMatchObject({ inProgress: true, workedMin: 210 });
+    expect(week.workedMin).toBe(210);
   });
 });

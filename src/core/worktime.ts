@@ -1,4 +1,4 @@
-import { addDaysISO, startOfWeekMon } from './date';
+import { addDaysISO, diffDays, startOfWeekMon } from './date';
 import { isOffDay } from './holidays';
 import type { HHmm, ISODate, WorkLog } from './types';
 
@@ -48,20 +48,25 @@ export interface WeekResult {
   warning: 'none' | 'near' | 'over';
 }
 
+export interface Now {
+  date: ISODate;
+  time: HHmm;
+}
+
 export interface DayOptions {
   isOffDay: boolean;
   /** 그날 휴가 quarter 합계 */
   leaveQ: number;
   lunch?: Lunch;
-  /** 진행 중 기록(clockOut '')의 퇴근 시각 대신 쓸 현재 시각 */
-  now?: HHmm;
+  /** 진행 중 기록(clockOut '')은 출근 후 24시간 안에서 이 시각까지 근무로 계산해요. */
+  now?: Now;
 }
 
 export interface WeekContext {
   off: Set<ISODate>;
   leaveQByDate?: ReadonlyMap<ISODate, number>;
   lunch?: Lunch;
-  now?: { date: ISODate; time: HHmm };
+  now?: Now;
 }
 
 const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -79,22 +84,32 @@ const overlap = (aStart: number, aEnd: number, bStart: number, bEnd: number) =>
 const leaveCreditMin = (leaveQ: number) =>
   Math.min(DAY_STANDARD_MIN, leaveQ * LEAVE_CREDIT_PER_QUARTER);
 
+/** 퇴근(또는 지금) 시각을 출근일 0시 기준 분으로 돌려줘요. 계산할 수 없으면 undefined예요. */
+function endMinutes(log: WorkLog, start: number, now: Now | undefined): number | undefined {
+  if (log.clockOut !== '') {
+    const end = toMinutes(log.clockOut);
+    return end < start ? end + MINUTES_PER_DAY : end; // 자정을 넘긴 근무
+  }
+  if (!now) return undefined;
+  // 진행 중: 아직 출근 전이거나 24시간이 넘게 지난 기록(퇴근 누락)은 계산하지 않아요.
+  const elapsed = diffDays(log.date, now.date) * MINUTES_PER_DAY + toMinutes(now.time);
+  return elapsed > start && elapsed - start <= MINUTES_PER_DAY ? elapsed : undefined;
+}
+
 /** 하루 근무시간을 정산해요 (SPEC §5.6). */
 export function computeDay(log: WorkLog, opts: DayOptions): DayResult {
   const inProgress = log.clockOut === '';
-  const out = inProgress ? opts.now : log.clockOut;
+  const start = toMinutes(log.clockIn);
+  const end = endMinutes(log, start, opts.now);
   let breakMin = 0;
   let workedMin = 0;
 
-  if (out !== undefined) {
-    const start = toMinutes(log.clockIn);
-    let end = toMinutes(out);
-    if (end < start) end += MINUTES_PER_DAY; // 자정을 넘긴 근무
-
-    if (log.breakMinutes !== undefined) {
-      breakMin = log.breakMinutes;
+  if (end !== undefined) {
+    const manualBreak = log.breakMinutes;
+    if (typeof manualBreak === 'number' && Number.isFinite(manualBreak)) {
+      breakMin = Math.max(0, manualBreak);
     } else {
-      // 점심시간과 겹친 만큼 자동 차감 (자정을 넘기면 다음 날 점심도 확인)
+      // 입력이 없으면(null 포함) 점심시간과 겹친 만큼 자동 차감 (자정을 넘기면 다음 날 점심도 확인)
       const lunch = opts.lunch ?? DEFAULT_LUNCH;
       const lunchStart = toMinutes(lunch.start);
       const lunchEnd = toMinutes(lunch.end);
@@ -131,7 +146,7 @@ export function computeWeek(weekStart: ISODate, logs: WorkLog[], ctx: WeekContex
       isOffDay: isOffDay(date, ctx.off),
       leaveQ: ctx.leaveQByDate?.get(date) ?? 0,
       lunch: ctx.lunch,
-      now: ctx.now?.date === date ? ctx.now.time : undefined,
+      now: ctx.now,
     };
     const log = logByDate.get(date);
     if (log) return computeDay(log, opts);
