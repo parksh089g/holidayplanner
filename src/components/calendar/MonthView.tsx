@@ -65,9 +65,9 @@ export function MonthView({
             key={w}
             className={
               i === 6
-                ? 'text-red-600 dark:text-red-400'
+                ? 'text-red-700 dark:text-red-400'
                 : i === 5
-                  ? 'text-blue-600 dark:text-blue-400'
+                  ? 'text-blue-700 dark:text-blue-400'
                   : 'text-gray-600 dark:text-gray-400'
             }
           >
@@ -86,25 +86,31 @@ export function MonthView({
               <button
                 key={date}
                 type="button"
-                aria-label={dayLabel(date, info, today)}
                 onClick={(e: MouseEvent<HTMLButtonElement>) => onSelect(date, e.currentTarget)}
                 className={`flex h-[4.5rem] min-w-0 flex-col items-stretch gap-0.5 bg-white p-1 text-left hover:bg-gray-50 focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:bg-gray-900 dark:hover:bg-gray-800 ${
                   isToday ? 'ring-2 ring-inset ring-blue-600 dark:ring-blue-400' : ''
                 }`}
               >
+                {/* 스크린리더는 이 설명만 읽어요. 보이는 숫자·칩은 장식으로 숨겨요. */}
+                <span className="sr-only">{dayLabel(date, info, today)}</span>
                 <span
+                  aria-hidden="true"
                   className={`text-xs font-semibold tabular-nums ${dayColor(date, info.holidays)}`}
                 >
                   {Number(date.slice(8))}
                 </span>
                 {info.holidays[0] && (
-                  <span className="truncate text-[10px] leading-tight text-red-600 dark:text-red-400">
+                  <span
+                    aria-hidden="true"
+                    className="truncate text-[10px] leading-tight text-red-700 dark:text-red-400"
+                  >
                     {info.holidays[0].name}
                   </span>
                 )}
                 {info.leaves.slice(0, 2).map((entry) => (
                   <span
                     key={entry.id}
+                    aria-hidden="true"
                     className={`truncate rounded px-0.5 text-[10px] font-semibold leading-tight ${leaveChipClass(entry)}`}
                   >
                     {leaveChipLabel(entry)}

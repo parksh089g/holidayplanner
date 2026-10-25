@@ -19,7 +19,8 @@ export function ThemeToggle({ showLabel = false }: { showLabel?: boolean }) {
     <button
       type="button"
       onClick={cycleTheme}
-      aria-label={`테마 바꾸기, 지금은 ${label}`}
+      // 보이는 글자("테마: 시스템")로 시작해야 음성 명령으로도 찾을 수 있어요 (WCAG 2.5.3).
+      aria-label={`테마: ${label}, 눌러서 바꾸기`}
       className={`inline-flex h-11 items-center gap-3 rounded-lg text-sm text-gray-600 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:text-gray-300 dark:hover:bg-gray-800 ${
         showLabel ? 'w-full px-3' : 'w-11 justify-center'
       }`}

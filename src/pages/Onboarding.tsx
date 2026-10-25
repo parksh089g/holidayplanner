@@ -99,7 +99,7 @@ export default function Onboarding() {
   const errorProps = error ? { 'aria-invalid': true, 'aria-describedby': errorId } : {};
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-[env(safe-area-inset-bottom)]">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-4 pb-[env(safe-area-inset-bottom)]">
       <header className="pt-8">
         <h1 className="text-2xl font-bold">연차 플래너 시작하기</h1>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -251,6 +251,6 @@ export default function Onboarding() {
           </button>
         </div>
       </form>
-    </div>
+    </main>
   );
 }

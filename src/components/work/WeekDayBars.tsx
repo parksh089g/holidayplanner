@@ -66,18 +66,24 @@ export function WeekDayBars({
               <button
                 type="button"
                 onClick={(e: MouseEvent<HTMLButtonElement>) => onSelect(day.date, e.currentTarget)}
-                aria-label={[`${month}월 ${date}일 ${weekday}요일`, ...extra, text].join(', ')}
                 className={`grid min-h-12 w-full grid-cols-[3rem_1fr] items-center gap-x-3 gap-y-1 rounded-lg px-2 py-1.5 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:hover:bg-gray-800 ${
                   day.date === today ? 'bg-blue-50 dark:bg-blue-950' : ''
                 }`}
               >
+                <span className="sr-only">
+                  {[`${month}월 ${date}일 ${weekday}요일`, ...extra, text].join(', ')}
+                </span>
                 {/* 막대 폭을 요일마다 같게 두려고 글자는 막대 위에 따로 써요. */}
                 <span
+                  aria-hidden="true"
                   className={`row-span-2 text-sm font-semibold ${dayColor(day.date, holidays)}`}
                 >
                   {weekday} <span className="tabular-nums">{date}</span>
                 </span>
-                <span className="text-xs tabular-nums text-gray-700 dark:text-gray-300">
+                <span
+                  aria-hidden="true"
+                  className="text-xs tabular-nums text-gray-700 dark:text-gray-300"
+                >
                   {text}
                 </span>
                 <span

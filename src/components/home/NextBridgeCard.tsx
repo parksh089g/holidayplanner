@@ -32,36 +32,39 @@ export function NextBridgeCard({
         </Link>
       }
     >
-      {loading ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">공휴일을 불러오는 중이에요.</p>
-      ) : !candidate ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          연차 3일 안에서 공휴일을 낀 연휴를 찾지 못했어요.
-        </p>
-      ) : (
-        <>
-          <p className="text-lg font-semibold">
-            {formatDateRange(candidate.start, candidate.end, year)}
+      {/* 불러오는 동안과 결과의 높이 차이를 줄여 아래 카드가 밀리지 않게 해요. */}
+      <div className="min-h-[7.5rem]">
+        {loading ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">공휴일을 불러오는 중이에요.</p>
+        ) : !candidate ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            연차 3일 안에서 공휴일을 낀 연휴를 찾지 못했어요.
           </p>
-          <p className="mt-1 text-sm">
-            <strong>{candidate.totalDays}일 쉬기</strong> · 연차 {candidate.leaveDays}일 · 효율{' '}
-            {candidate.efficiency}
-          </p>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            연차 쓰는 날: {candidate.leaveDates.map(date).join(', ')}
-          </p>
-          {candidate.holidays.length > 0 && (
+        ) : (
+          <>
+            <p className="text-lg font-semibold">
+              {formatDateRange(candidate.start, candidate.end, year)}
+            </p>
+            <p className="mt-1 text-sm">
+              <strong>{candidate.totalDays}일 쉬기</strong> · 연차 {candidate.leaveDays}일 · 효율{' '}
+              {candidate.efficiency}
+            </p>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {[...new Set(candidate.holidays.map((h) => h.name))].join(', ')}
+              연차 쓰는 날: {candidate.leaveDates.map(date).join(', ')}
             </p>
-          )}
-          {insufficient && (
-            <p className="mt-2 inline-block rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
-              잔여 부족
-            </p>
-          )}
-        </>
-      )}
+            {candidate.holidays.length > 0 && (
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {[...new Set(candidate.holidays.map((h) => h.name))].join(', ')}
+              </p>
+            )}
+            {insufficient && (
+              <p className="mt-2 inline-block rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                잔여 부족
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </Card>
   );
 }

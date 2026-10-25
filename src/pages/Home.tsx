@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { computeAutoGrants } from '../core/accrual';
 import { computeBalance, expiredQBetween } from '../core/balance';
 import { defaultBridgeOptions, suggestBridges } from '../core/bridge';
-import { addYearsISO, toISO } from '../core/date';
+import { addDaysISO, addYearsISO, startOfWeekMon, toISO } from '../core/date';
 import { upcomingHolidays } from '../core/holidays';
 import { fullDayLeaveDates, leaveQuartersByDate } from '../core/leave';
 import { QUARTERS_PER_DAY } from '../core/types';
@@ -12,7 +12,7 @@ import { NextBridgeCard } from '../components/home/NextBridgeCard';
 import { TodayWorkCard } from '../components/home/TodayWorkCard';
 import { UpcomingHolidaysCard } from '../components/home/UpcomingHolidaysCard';
 import { HolidayDataBanner } from '../components/HolidayDataBanner';
-import { getProfile, listLeaveEntries, listManualGrants } from '../db/repo';
+import { getProfile, listLeaveEntries, listManualGrants, listWorkLogs } from '../db/repo';
 import { useHolidays } from '../hooks/useHolidays';
 import { useNow } from '../hooks/useNow';
 
@@ -25,6 +25,15 @@ export default function Home() {
   const entries = useLiveQuery(() => listLeaveEntries());
   const manualGrants = useLiveQuery(listManualGrants);
   const holidays = useHolidays([year, year + 1]);
+  // 오늘 근무 카드용: 어제(야간 근무 이어서 퇴근)부터 이번 주 일요일까지
+  const monday = startOfWeekMon(today);
+  const yesterday = addDaysISO(today, -1);
+  const logsFrom = yesterday < monday ? yesterday : monday;
+  const logsTo = addDaysISO(monday, 6);
+  const workLogs = useLiveQuery(
+    () => listWorkLogs({ from: logsFrom, to: logsTo }),
+    [logsFrom, logsTo],
+  );
 
   const leave = useMemo(() => {
     if (!profile || !entries || !manualGrants) return undefined;
@@ -65,7 +74,7 @@ export default function Home() {
     <div>
       <h1 className="text-2xl font-bold">홈</h1>
       <HolidayDataBanner missingYears={holidays.missingYears} failedYears={holidays.failedYears} />
-      {profile && leave && (
+      {profile && leave && workLogs && (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <BalanceCard summary={leave.summary} today={today} expiredQ={leave.expiredQ} />
           <TodayWorkCard
@@ -74,6 +83,7 @@ export default function Home() {
             profile={profile}
             off={holidays.off}
             leaveQByDate={leave.leaveQByDate}
+            logs={workLogs}
           />
           <NextBridgeCard
             loading={!bridge}
