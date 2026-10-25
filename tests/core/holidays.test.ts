@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { parseISO } from '../../src/core/date';
-import { buildOffDaySet, deriveSubstitutes, isOffDay } from '../../src/core/holidays';
+import {
+  buildOffDaySet,
+  deriveSubstitutes,
+  isOffDay,
+  upcomingHolidays,
+} from '../../src/core/holidays';
 import type { Holiday } from '../../src/core/types';
 import { holidayFiles, holidaysOf } from './fixtures';
 
@@ -147,5 +152,22 @@ describe('buildOffDaySet / isOffDay', () => {
   it('회사 휴무일은 켜 둔 날짜만 휴무예요', () => {
     expect(isOffDay('2026-04-15', off)).toBe(true);
     expect(isOffDay('2026-11-11', off)).toBe(false);
+  });
+});
+
+describe('upcomingHolidays', () => {
+  const list = [...holidaysOf(2026, 2027)].reverse(); // 순서가 섞여 들어와도
+
+  it('asOf 당일을 포함해 다가오는 공휴일을 날짜순으로 n개 돌려줘요', () => {
+    expect(upcomingHolidays(list, '2026-10-23', 3).map((h) => `${h.date} ${h.name}`)).toEqual([
+      '2026-12-25 성탄절',
+      '2027-01-01 신정',
+      '2027-02-06 설날 연휴',
+    ]);
+    expect(upcomingHolidays(list, '2026-12-25', 1)[0].name).toBe('성탄절');
+  });
+
+  it('남은 공휴일이 적으면 있는 만큼만 돌려줘요', () => {
+    expect(upcomingHolidays(list, '2027-12-26', 3).map((h) => h.date)).toEqual(['2027-12-27']);
   });
 });

@@ -106,3 +106,11 @@ export function deriveSubstitutes(base: Holiday[]): Holiday[] {
       return { date, name: `대체공휴일(${name})`, kind: 'substitute' as const };
     });
 }
+
+/** asOf(포함) 이후 공휴일을 날짜순으로 count개 돌려줘요. */
+export function upcomingHolidays(holidays: Holiday[], asOf: ISODate, count: number): Holiday[] {
+  return holidays
+    .filter((h) => h.date >= asOf)
+    .sort((a, b) => compareISO(a.date, b.date))
+    .slice(0, count);
+}

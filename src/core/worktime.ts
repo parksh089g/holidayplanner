@@ -174,3 +174,8 @@ export function computeWeek(weekStart: ISODate, logs: WorkLog[], ctx: WeekContex
     warning: workedMin > WEEK_LIMIT_MIN ? 'over' : workedMin >= WEEK_NEAR_MIN ? 'near' : 'none',
   };
 }
+
+/** 퇴근 전이고 출근 후 24시간 안인 근무예요. 자정을 넘긴 야간 근무도 포함해요. */
+export function isOngoing(log: WorkLog, now: Now): boolean {
+  return log.clockOut === '' && endMinutes(log, toMinutes(log.clockIn), now) !== undefined;
+}
