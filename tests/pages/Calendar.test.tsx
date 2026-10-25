@@ -60,6 +60,9 @@ async function renderCalendar() {
 const cell = (month: number, day: number) =>
   screen.findByRole('button', { name: new RegExp(`^${month}월 ${day}일 `) });
 
+/** 접근 가능한 이름이 정확히 name인 칸 (스크린리더가 듣는 이름) */
+const named = (name: string | RegExp) => screen.findByRole('button', { name });
+
 async function openDay(month: number, day: number) {
   fireEvent.click(await cell(month, day));
   return screen.findByRole('dialog');
@@ -72,13 +75,19 @@ describe('월 보기 (SPEC §8.3)', () => {
   it('이번 달을 월요일부터 보여주고 공휴일 이름과 오늘을 표시해요', async () => {
     await renderCalendar();
     expect(screen.getByRole('heading', { level: 2, name: '2026년 10월' })).toBeTruthy();
-    expect((await cell(10, 3)).getAttribute('aria-label')).toBe('10월 3일 토요일, 개천절');
+    expect(await named('10월 3일 토요일, 개천절')).toBe(await cell(10, 3));
     expect((await cell(10, 5)).textContent).toContain('대체공휴일(개천절)');
-    expect((await cell(10, 23)).getAttribute('aria-label')).toBe('10월 23일 금요일, 오늘');
+    expect(await named('10월 23일 금요일, 오늘')).toBe(await cell(10, 23));
     // 일요일·공휴일 빨강, 토요일 파랑
-    expect((await cell(10, 4)).querySelector('span')!.className).toContain('text-red-600');
-    expect((await cell(10, 10)).querySelector('span')!.className).toContain('text-blue-600');
-    expect((await cell(10, 9)).querySelector('span')!.className).toContain('text-red-600');
+    expect((await cell(10, 4)).querySelector('span[aria-hidden="true"]')!.className).toContain(
+      'text-red-700',
+    );
+    expect((await cell(10, 10)).querySelector('span[aria-hidden="true"]')!.className).toContain(
+      'text-blue-700',
+    );
+    expect((await cell(10, 9)).querySelector('span[aria-hidden="true"]')!.className).toContain(
+      'text-red-700',
+    );
   });
 
   it('휴가 칩은 글자로 구분하고 근무 기록이 있으면 알려줘요 (일괄 차감은 칩으로 안 그려요)', async () => {
@@ -97,11 +106,9 @@ describe('월 보기 (SPEC §8.3)', () => {
     expect((await cell(10, 27)).textContent).toContain('반차');
     expect((await cell(10, 28)).textContent).toContain('반반차');
     expect((await cell(10, 29)).textContent).toContain('특별');
-    expect((await cell(10, 28)).getAttribute('aria-label')).toBe(
-      '10월 28일 수요일, 연차 오후 반반차',
-    );
-    expect((await cell(10, 21)).getAttribute('aria-label')).toContain('근무 기록 있음');
-    expect((await cell(10, 23)).getAttribute('aria-label')).toBe('10월 23일 금요일, 오늘');
+    expect(await named('10월 28일 수요일, 연차 오후 반반차')).toBe(await cell(10, 28));
+    expect(await named(/^10월 21일 .*근무 기록 있음$/)).toBe(await cell(10, 21));
+    expect(await named('10월 23일 금요일, 오늘')).toBe(await cell(10, 23));
   });
 
   it('이전·다음 버튼, 스와이프, 오늘 버튼으로 달을 옮겨요', async () => {
@@ -136,7 +143,7 @@ describe('월 보기 (SPEC §8.3)', () => {
     fireEvent.click(screen.getByRole('button', { name: '연간' }));
     const months = await screen.findAllByRole('button', { name: /^\d+월 보기/ });
     expect(months).toHaveLength(12);
-    expect(months[11].getAttribute('aria-label')).toBe('12월 보기, 공휴일 1일, 휴가 1일');
+    expect(await named('12월 보기, 공휴일 1일, 휴가 1일')).toBe(months[11]);
     fireEvent.click(months[11]);
     await screen.findByRole('heading', { level: 2, name: '2026년 12월' });
     expect(screen.getByRole('button', { name: '월' }).getAttribute('aria-pressed')).toBe('true');

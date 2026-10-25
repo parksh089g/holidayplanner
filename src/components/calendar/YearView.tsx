@@ -28,10 +28,13 @@ export function YearView({
             key={month}
             type="button"
             onClick={() => onPickMonth(month)}
-            aria-label={`${i + 1}월 보기, 공휴일 ${holidayDays}일, 휴가 ${leaveDays}일`}
             className="rounded-lg border border-gray-200 p-2 text-left hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-gray-800 dark:hover:bg-gray-900"
           >
-            <span className="flex items-baseline justify-between text-sm font-semibold">
+            <span className="sr-only">{`${i + 1}월 보기, 공휴일 ${holidayDays}일, 휴가 ${leaveDays}일`}</span>
+            <span
+              aria-hidden="true"
+              className="flex items-baseline justify-between text-sm font-semibold"
+            >
               {i + 1}월
               {leaveDays > 0 && (
                 <span className="text-xs font-medium text-blue-700 dark:text-blue-300">

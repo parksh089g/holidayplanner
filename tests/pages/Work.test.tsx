@@ -64,8 +64,9 @@ const dayButton = async (month: number, day: number) =>
   within(await weekSection()).findByRole('button', {
     name: new RegExp(`^${month}월 ${day}일 `),
   });
-const label = async (month: number, day: number) =>
-  (await dayButton(month, day)).getAttribute('aria-label');
+/** 주간 막대에서 접근 가능한 이름이 정확히 name인 날 (스크린리더가 듣는 이름) */
+const expectDay = async (name: string) =>
+  expect(await within(await weekSection()).findByRole('button', { name })).toBeTruthy();
 
 describe('근무 화면: 주 단위 (SPEC §8.5)', () => {
   it('요일별로 실근로·초과·휴가 인정 시간을 보여주고 주 합계를 내요', async () => {
@@ -82,14 +83,12 @@ describe('근무 화면: 주 단위 (SPEC §8.5)', () => {
       '10/19(월) – 10/25(일)',
     );
     expect(within(section).getByText('이번 주')).toBeTruthy();
-    await waitFor(async () =>
-      expect(await label(10, 19)).toBe('10월 19일 월요일, 10시간 · 초과 2시간'),
-    );
-    expect(await label(10, 20)).toBe('10월 20일 화요일, 휴가 8시간');
-    expect(await label(10, 21)).toBe('10월 21일 수요일, 4시간 · 휴가 4시간');
-    expect(await label(10, 22)).toBe('10월 22일 목요일, 기록 없음');
-    expect(await label(10, 23)).toBe('10월 23일 금요일, 오늘, 4시간');
-    expect(await label(10, 24)).toBe('10월 24일 토요일, 쉬는 날, 기록 없음');
+    await expectDay('10월 19일 월요일, 10시간 · 초과 2시간');
+    await expectDay('10월 20일 화요일, 휴가 8시간');
+    await expectDay('10월 21일 수요일, 4시간 · 휴가 4시간');
+    await expectDay('10월 22일 목요일, 기록 없음');
+    await expectDay('10월 23일 금요일, 오늘, 4시간');
+    await expectDay('10월 24일 토요일, 쉬는 날, 기록 없음');
     // 실근로 600 + 240 + 240(진행 중, 점심 제외) = 18시간
     expect(section.textContent).toContain('이번 주 실근로 18시간 · 연장(추정) 2시간');
     expect(section.textContent).toContain('52시간까지 34시간 남았어요.');
@@ -103,8 +102,8 @@ describe('근무 화면: 주 단위 (SPEC §8.5)', () => {
     fireEvent.click(screen.getByRole('button', { name: '이전 주' }));
     const section = await weekSection();
     await within(section).findByRole('heading', { level: 2, name: '10/5(월) – 10/11(일)' });
-    expect(await label(10, 5)).toBe('10월 5일 월요일, 대체공휴일(개천절), 기록 없음');
-    expect(await label(10, 9)).toBe('10월 9일 금요일, 한글날, 기록 없음');
+    await expectDay('10월 5일 월요일, 대체공휴일(개천절), 기록 없음');
+    await expectDay('10월 9일 금요일, 한글날, 기록 없음');
     expect(section.textContent).toContain('이 주 실근로');
     fireEvent.click(within(section).getByRole('button', { name: '이번 주로' }));
     await within(section).findByRole('heading', { level: 2, name: '10/19(월) – 10/25(일)' });
@@ -134,7 +133,7 @@ describe('근무 화면: 주 단위 (SPEC §8.5)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: '근무 기록 저장' }));
     await within(dialog).findByText('근무 기록을 저장했어요.');
     fireEvent.click(within(dialog).getByRole('button', { name: '닫기' }));
-    await waitFor(async () => expect(await label(10, 22)).toBe('10월 22일 목요일, 8시간'));
+    await expectDay('10월 22일 목요일, 8시간');
   });
 
   it('이 화면에서도 출근할 수 있어요', async () => {
